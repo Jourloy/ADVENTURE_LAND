@@ -13,7 +13,9 @@ function group(aim, firstMember, secondMember) {
 }
 
 function pickTarget(member = null) {
-	let monster = get_target_of(member);
+	let monster = null;
+	if (member != null) monster = get_target_of(member);
+	else monster = get_nearest_monster({max_att: 50});
 	if (member == null) {
 		if (monster && monster.xp > 0 && monster.hp <= character.max_hp + 1000) return monster;
 	} else if (member != null) {
@@ -29,33 +31,6 @@ function safePlace(target) {
 		move(character.x+(target.x-character.x)/10,
 			 character.y+(target.y-character.y)/10);
 		return false;
-	} else if (dist < target.range + 20 && target.range + 20 < character.range) {
-		let X = null;
-		let Y = null;
-		
-		if (target.x < character.x) X = "left";
-		else if (target.x > character.x) X = "right";
-		
-		if (target.y < character.y) Y = "down";
-		else if (target.y > character.y) Y = "up";
-		
-		if (X == "left") {
-			if (Y == "down") {
-				move(character.x+5,
-					 character.y+5);
-			} else if (Y == "up") {
-				move(character.x+5,
-					 character.y-5);
-			}
-		} else if (X == "right") {
-			if (Y == "down") {
-				move(character.x-5,
-					 character.y+5);
-			} else if (Y == "up") {
-				move(character.x-5,
-					 character.y-5);
-			}
-		}
 	}
 	return true;
 }
@@ -63,12 +38,6 @@ function safePlace(target) {
 function attackTarget(target) {
 	let check = safePlace(target);
 	if (is_in_range(target) && can_attack(target)) {
-		/*if (target.hp > 125*2 && character.mp > character.mp_cost*3) {
-			if (!is_on_cooldown("curse") && (!target.s["cursed"] || target.s["cursed"] && target.s["cursed"]["ms"]<1)) {
-				use_skill("curse");
-			}
-		}*/
-		
 		attack(target);
 	}
 }
@@ -76,10 +45,10 @@ function attackTarget(target) {
 function allGroup(firstMember, secondMember, aim) {
 	const priest = firstMember;
 	const damager = secondMember;
-
+	
 	if (aim == "gold") {
-        target = pickTarget();
-        if (target && character.mp > 80) {
+        let target = pickTarget();
+        if (target && character.mp > 50) {
             attackTarget(target);
         }
     }
