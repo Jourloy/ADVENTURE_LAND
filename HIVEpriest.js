@@ -80,7 +80,7 @@ function attackTarget(target) {
 
 // Check targeted monster/player
 function checkMonster(member) {
-	if (member.target) return true;
+	if (get_target_of(member) != null) return true;
 	else return false;
 }
 
@@ -113,13 +113,12 @@ function onlyTaunt(firstMember) {
 function allGroup(firstMember, secondMember) {
 	const taunt = firstMember;
 	const damager = secondMember;
-
 	if (!checkMonster(taunt)) {
 		if (taunt.hp < taunt.max_hp-80 && damager.hp >= damager.max_hp-80) heal(taunt);
 		if (damager.hp < damager.max_hp-80 && taunt.hp >= taunt.max_hp-80) heal(damager);
 		if (damager.hp < damager.max_hp-80 && taunt.hp < taunt.max_hp-80) {
-			if(!is_on_cooldown("party_heal"))  {
-				use_skill("party_heal");
+			if(!is_on_cooldown("partyheal"))  {
+				use_skill("partyheal");
 			}
 		}
 		if (distance(taunt, character) != 0) {
@@ -129,8 +128,8 @@ function allGroup(firstMember, secondMember) {
 		if (taunt.hp < taunt.max_hp-80 && damager.hp >= damager.max_hp-80) heal(taunt);
 		if (damager.hp < damager.max_hp-80 && taunt.hp >= taunt.max_hp-80) heal(damager);
 		if (damager.hp < damager.max_hp-80 && taunt.hp < taunt.max_hp-80) {
-			if(!is_on_cooldown("party_heal"))  {
-				use_skill("party_heal");
+			if(!is_on_cooldown("partyheal"))  {
+				use_skill("partyheal");
 			}
 		}
 		let target = pickTarget(firstMember);
