@@ -150,7 +150,7 @@ setInterval(function(){
 		else set_message("GOLD: " + character.gold);
 	}
 	
-	const firstMember = get_player("HIVEwarrior")
+	const firstMember = get_player("HIVEwarrior");
 	const secondMember = get_player("HIVEpriest");
 	work(firstMember, secondMember, aim);
 	
