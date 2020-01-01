@@ -14,13 +14,15 @@ function group(aim, firstMember, secondMember) {
 
 function pickTarget(member = null) {
 	let monster = null;
-	if (member != null) monster = get_target_of(member);
-	else monster = get_nearest_monster({max_att: 50});
-	if (member == null) {
-		if (monster && monster.xp > 0 && monster.hp <= character.max_hp + 1000) return monster;
-	} else if (member != null) {
-		if (monster && monster.hp < monster.max_hp && member.target && monster.id == member.target) return monster;
-	}
+	if (get_target_of(character) == null) {
+		if (member != null) monster = get_target_of(member);
+		else monster = get_nearest_monster({max_att: 50});
+		if (member == null) {
+			if (monster && monster.xp > 0) return monster;
+		} else if (member != null) {
+			if (monster && monster.hp < monster.max_hp && member.target && monster.id == member.target) return monster;
+		}
+	} else return get_target_of(character)
 }
 
 function safePlace(target) {
@@ -64,6 +66,11 @@ function work(firstMember, secondMember, aim) {
 	}
 	
 	if (character.hp < character.max_hp-80 && !firstMember) {
+		if (!is_on_cooldown("use_hp")) {
+			use_skill("use_hp");
+		}
+	}
+	if (character.hp < 500) {
 		if (!is_on_cooldown("use_hp")) {
 			use_skill("use_hp");
 		}
