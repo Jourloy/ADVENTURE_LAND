@@ -1,3 +1,5 @@
+
+
 function group(aim, firstMember, secondMember) {
 	if (aim == "state") {
 		if (firstMember != null && secondMember != null) {
@@ -16,7 +18,7 @@ function pickTarget(member = null) {
 	let monster = null;
 	if (get_target_of(character) == null) {
 		if (member != null) monster = get_target_of(member);
-		else monster = get_nearest_monster({max_att: 50});
+		else monster = get_nearest_monster({max_att:70, no_target:true});
 		if (member == null) {
 			if (monster && monster.xp > 0) return monster;
 		} else if (member != null) {
@@ -26,12 +28,10 @@ function pickTarget(member = null) {
 }
 
 function safePlace(target) {
-	
 	dist = distance(target, character)
 	
 	if (!is_in_range(target)) {
-		move(character.x+(target.x-character.x)/10,
-			 character.y+(target.y-character.y)/10);
+		move(target.x, target.y);
 		return false;
 	}
 	return true;
@@ -48,12 +48,31 @@ function allGroup(firstMember, secondMember, aim) {
 	const priest = firstMember;
 	const damager = secondMember;
 	
+	const players = ["HIVEpriest", "HIVEmage"];
+    
+    for (const name of players) {
+        const player = get_player(name);
+        
+        if (player) {
+            if (!player.party) {
+                send_party_invite(name);
+            }
+        }
+    }
+	
 	if (aim == "gold") {
         let target = pickTarget();
         if (target && character.mp > 50) {
             attackTarget(target);
         }
-    }
+    } else if (aim == "move") {
+		if (get_target_of(character) != null && get_target_of(character).hp < get_target_of(character).max_hp) {
+			target = pickTarget(character);
+			if (target && character.mp > 50) {
+				attackTarget(target);
+			}
+		}
+	}
 }
 
 function work(firstMember, secondMember, aim) {
@@ -77,24 +96,53 @@ function work(firstMember, secondMember, aim) {
 	}
 	
 	if (groupState == 0) allGroup(firstMember, secondMember, aim)
-	else if (groupState == 1) onlyPriets(firstMember);
-	else onlyTaunt(aim);
 }
 
+function change(aim = null) {
+	if (aim == "setGold") set("HIVEwarrior", mainAim = "gold");
+	if (aim == "setMove") set("HIVEwarrior", mainAim = "move");
+	if (aim == "allToMe") {
+		set("HIVEpriest", mainAim = "gold");
+		set("HIVEmage", mainAim = "gold");
+		game_log("Priest: " + get("HIVEpriest"))
+		game_log("Mage: " + get("HIVEmage"))
+		
+	}
+	if (aim == "nothing") {
+		set("HIVEpriest", mainAim = "move");
+		set("HIVEmage", mainAim = "move");
+		game_log("Priest: " + get("HIVEpriest"))
+		game_log("Mage: " + get("HIVEmage"))
+	}
+	
+}
+		
 setInterval(function(){
 	loot();
-	
+	let aim = null;
 	// gold - person will farm gold
 	// move - person will attack all mobs on way
-	const aim = "gold"
+	map_key("1","snippet",'change("setGold")');
+	map_key("2","snippet",'change("setMove")');
+	map_key("3","snippet",'change("allToMe")');
+	map_key("4","snippet",'change("nothing")');
 	
+	aim = get("HIVEwarrior");
+	if (aim == null) {
+		set("HIVEwarrior", mainAim = "move");
+	}
 	if (aim == "gold") {
 		if (character.gold > 9999999) set_message("GOLD: " + character.gold/1000000 + "M");
 		else set_message("GOLD: " + character.gold);
 	}
-	
 	const firstMember = get_player("HIVEpriest")
-	const secondMember = get_player("HIVEpriest");
+	const secondMember = get_player("HIVEmage");
+	if (get_player("HIVEmerchant")) {
+		if (character.items[41] != null) send_item("HIVEmerchant", 41, character.items[41].q)
+	}
+	if (get_player("HIVEmerchant")) {
+		if (!get_player("HIVEmerchant").party) send_party_invite("HIVEmerchant");
+	}
 	work(firstMember, secondMember, aim);
 	
 },1000/4);
