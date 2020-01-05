@@ -88,6 +88,14 @@ function checkMonster(member) {
 function onlyPriest(aim) {
 	let target = null;
 	if (aim == "gold") target = pickTarget();
+	else if (aim == "help") {
+		const friend = get_player("kotyara")
+		if (friend) {
+			target = pickTarget(friend);
+			if (target && target.hp < target.max_hp) attackTarget(target);
+			if (friend.hp < friend.max_hp-80) heal(friend);
+		}
+	}
 	
 	if (target && target.hp == target.max_hp && character.mp > 150) {
 		attackTarget(target);
@@ -113,7 +121,13 @@ function onlyTaunt(firstMember) {
 function allGroup(firstMember, secondMember) {
 	const taunt = firstMember;
 	const damager = secondMember;
-	if (!checkMonster(taunt)) {
+	
+	if (!character.party) {
+    	accept_party_invite("HIVEwarrior");
+    }
+	
+	if (get_player("HIVEmerchant") && get_player("HIVEmerchant").hp < get_player("HIVEmerchant").max_hp) heal(get_player("HIVEmerchant"))
+	if (!checkMonster(taunt) || (checkMonster(taunt) && get_target_of(taunt).hp == get_target_of(taunt).max_hp)) {
 		if (taunt.hp < taunt.max_hp-80 && damager.hp >= damager.max_hp-80) heal(taunt);
 		if (damager.hp < damager.max_hp-80 && taunt.hp >= taunt.max_hp-80) heal(damager);
 		if (damager.hp < damager.max_hp-80 && taunt.hp < taunt.max_hp-80) {
@@ -141,7 +155,7 @@ function allGroup(firstMember, secondMember) {
 function work(firstMember, secondMember, aim) {
 	const groupState = group("state", firstMember, secondMember);
 	
-	if (character.mp < character.max_mp-80) {
+	if (character.mp < character.max_mp-299) {
 		if (!is_on_cooldown("use_mp")) {
 			use_skill("use_mp");
 		}
@@ -151,27 +165,45 @@ function work(firstMember, secondMember, aim) {
 		if (!is_on_cooldown("use_hp")) {
 			use_skill("use_hp");
 		}
+		heal(character);
 	}
 	
 	if (groupState == 0) allGroup(firstMember, secondMember)
 	else if (groupState == 1) onlyTaunt(firstMember);
 	else onlyPriest(aim);
 }
-
+		
 setInterval(function(){
 	loot();
 	
+	const firstMember = get_player("HIVEwarrior")
+	const secondMember = get_player("HIVEmage");
+	
+	let aim = null;
 	// gold - person will farm gold
 	// move - person will attack all mobs on way
-	const aim = "gold"
+	
+	aim = get("HIVEpriest");
+	if (aim == null) {
+		set("HIVEpriest", mainAim = "move");
+	}
 	
 	if (aim == "gold") {
+		const taunt = firstMember;
+		const damager = secondMember;
+		if (character.gold > 0) send_gold(taunt, character.gold);
+		let count = 0;
+		for (var i of character.items) {
+			if (character.items[count] != null)  {
+				game_log("send [" + i.name + "] item");
+				game_log(send_item(taunt, count))
+			}
+			count++;
+		}
 		if (character.gold > 9999999) set_message("GOLD: " + character.gold/1000000 + "M");
 		else set_message("GOLD: " + character.gold);
 	}
 	
-	const firstMember = get_player("HIVEwarrior")
-	const secondMember = get_player("HIVEmage");
 	work(firstMember, secondMember, aim);
 	
 },1000/4);
