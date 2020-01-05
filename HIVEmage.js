@@ -108,7 +108,12 @@ function onlyTaunt(firstMember) {
 function allGroup(firstMember, secondMember) {
 	const taunt = firstMember;
 	const damager = secondMember;
-	if (!checkMonster(taunt)) {
+	
+	if (!character.party) {
+    	accept_party_invite("HIVEwarrior");
+    }
+	
+	if (!checkMonster(taunt) || (checkMonster(taunt) && get_target_of(taunt).hp == get_target_of(taunt).max_hp)) {
 		if (distance(taunt, character) != 0) {
 			move(taunt.x, taunt.y);
 		}
@@ -141,17 +146,33 @@ function work(firstMember, secondMember, aim) {
 setInterval(function(){
 	loot();
 	
+	const firstMember = get_player("HIVEwarrior")
+	const secondMember = get_player("HIVEmage");
+	
+	let aim = null;
 	// gold - person will farm gold
 	// move - person will attack all mobs on way
-	const aim = "gold"
+	
+	aim = get("HIVEpriest");
+	if (aim == null) {
+		set("HIVEpriest", mainAim = "move");
+	}
 	
 	if (aim == "gold") {
+		const taunt = firstMember;
+		const damager = secondMember;
+		if (character.gold > 0) send_gold(taunt, character.gold);
+		let count = 0;
+		for (var i of character.items) {
+			if (character.items[count] != null)  {
+				game_log("send [" + i.name + "] item");
+				game_log(send_item(taunt, count))
+			}
+			count++;
+		}
 		if (character.gold > 9999999) set_message("GOLD: " + character.gold/1000000 + "M");
 		else set_message("GOLD: " + character.gold);
 	}
-	
-	const firstMember = get_player("HIVEwarrior");
-	const secondMember = get_player("HIVEpriest");
 	work(firstMember, secondMember, aim);
 	
 },1000/4);
